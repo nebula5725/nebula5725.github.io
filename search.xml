@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>使用Hexo+NexT搭建个人博客</title>
+    <url>/2025/10/22/how-to-build-blog-with-hexo/</url>
+    <content><![CDATA[<p>本文介绍Hexo + NexT搭建个人博客。</p>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>Hexo 是一个快速、简洁且高效的博客框架。Hexo 使用 <a href="http://daringfireball.net/projects/markdown/">Markdown</a>（或其他渲染引擎）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。</p>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><h4 id="安装前提"><a href="#安装前提" class="headerlink" title="安装前提"></a>安装前提</h4><p>安装 Hexo 相当简单。然而在安装前，您必须检查电脑中是否已安装下列应用程序：</p>
+<ul>
+<li><a href="http://nodejs.org/">Node.js</a> (至少nodejs 6.9)</li>
+<li><a href="https://git-scm.com/">Git</a></li>
+</ul>
+<h4 id="安装Hexo"><a href="#安装Hexo" class="headerlink" title="安装Hexo"></a>安装Hexo</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
+
+<h4 id="建站"><a href="#建站" class="headerlink" title="建站"></a>建站</h4><p>安装 Hexo 完成后，请执行下列命令，Hexo 将会在指定文件夹中新建所需要的文件。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo init &lt;folder&gt;</span><br><span class="line"><span class="built_in">cd</span> &lt;folder&gt;</span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
+
+<p>新建完成以后，在指定目录下有如下目录结构：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">.</span><br><span class="line">|—— _config.yml     <span class="comment"># 网站的配置信息，大部分的配置信息在这里配置</span></span><br><span class="line">|—— package.json    <span class="comment"># 包信息，包括版本和依赖 </span></span><br><span class="line">|—— scaffolds       <span class="comment"># 模板文件夹，当要新建文章时会根据这个文件夹下的模板填充部分内容</span></span><br><span class="line">|—— <span class="built_in">source</span>          <span class="comment"># 用户存放资源的地方</span></span><br><span class="line">|   |—— _drafts     <span class="comment"># 草稿</span></span><br><span class="line">    |—— _posts      <span class="comment"># 文章</span></span><br><span class="line">|—— themes          <span class="comment"># 主题</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h4><p>该项主要对上面目录结构中的_config.yml进行配置，只记录在搭建个人博客时使用的配置，其他请读者执行了解。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 标题修改</span></span><br><span class="line">title: 红豆的专栏</span><br><span class="line"><span class="comment"># 作者修改</span></span><br><span class="line">author: 红豆</span><br><span class="line"><span class="comment"># 语言的修改，默认是英文，修改为中文</span></span><br><span class="line">language: zh-CN</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改主题为NexT，后面会介绍</span></span><br><span class="line">theme: next</span><br><span class="line"></span><br><span class="line"><span class="comment"># 部署配置</span></span><br><span class="line">deploy:</span><br><span class="line">  <span class="built_in">type</span>: git</span><br><span class="line">  repository: https://github.com/自己ID/自己ID..io.git</span><br><span class="line">  branch: main</span><br></pre></td></tr></table></figure>
+
+<h4 id="hexo常用命令"><a href="#hexo常用命令" class="headerlink" title="hexo常用命令"></a>hexo常用命令</h4><p>新建一个网站</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo init</span><br></pre></td></tr></table></figure>
+
+<p>生成静态文件</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 全称</span></span><br><span class="line">hexo generate</span><br><span class="line"><span class="comment"># 简写</span></span><br><span class="line">hexo g</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-d, –deploy</td>
+<td>文件生成后立即部署网站</td>
+</tr>
+<tr>
+<td>-w, –watch</td>
+<td>监视文件变动</td>
+</tr>
+</tbody></table>
+<p>启动服务器。默认情况下，访问网址为： <a href="http://localhost:4000/">http://localhost:4000/</a></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 全称</span></span><br><span class="line">hexo server </span><br><span class="line"><span class="comment"># 简写 </span></span><br><span class="line">hexo s</span><br></pre></td></tr></table></figure>
+
+<p>部署网站</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 全称</span></span><br><span class="line">hexo deploy</span><br><span class="line"><span class="comment"># 简写</span></span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-g, –generate</td>
+<td>部署网站之前先生成静态文件</td>
+</tr>
+</tbody></table>
+<p>清理缓存文件（db.json）已经publish目录</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="主题"><a href="#主题" class="headerlink" title="主题"></a>主题</h3><p>hexo下有多个主题可以使用，本人搭建博客时使用的就是NexT主题，该主题简洁漂亮大方。</p>
+<h4 id="下载NexT主题"><a href="#下载NexT主题" class="headerlink" title="下载NexT主题"></a>下载NexT主题</h4><p>在当前博客根目录下执行</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://.com/theme-next/hexo-theme-next themes/next</span><br></pre></td></tr></table></figure>
+
+<h4 id="修改配置"><a href="#修改配置" class="headerlink" title="修改配置"></a>修改配置</h4><p>主题配置路径themes&#x2F;next&#x2F;_config.yml</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 有多种模式可以选择</span></span><br><span class="line">scheme: Pisces</span><br><span class="line"></span><br><span class="line">menu:</span><br><span class="line">  <span class="comment"># 显示主页</span></span><br><span class="line">  home: / || home  </span><br><span class="line">  <span class="comment"># 显示关于</span></span><br><span class="line">  about: /about/ || user</span><br><span class="line">  <span class="comment"># 显示标签</span></span><br><span class="line">  tags: /tags/ || tags</span><br><span class="line">  <span class="comment"># 显示分类</span></span><br><span class="line">  categories: /categories/ || th</span><br><span class="line">  <span class="comment"># 显示归档</span></span><br><span class="line">  archives: /archives/ || archive</span><br><span class="line">  <span class="comment">#schedule: /schedule/ || calendar</span></span><br><span class="line">  <span class="comment">#sitemap: /sitemap.xml || sitemap</span></span><br><span class="line">  <span class="comment">#commonweal: /404/ || heartbeat</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="新建页面"><a href="#新建页面" class="headerlink" title="新建页面"></a>新建页面</h3><p>在主题中配置标签、分类菜单后还不能正常显示，需要新建关于、标签、分类页面</p>
+<h4 id="新建关于页面"><a href="#新建关于页面" class="headerlink" title="新建关于页面"></a>新建关于页面</h4><p>在博客所在的根目录下执行</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new page about</span><br></pre></td></tr></table></figure>
+
+<p>执行上面命令后会在source&#x2F;about目录下生成一个index.md，修改index.md，介绍自己。</p>
+<h4 id="新建标签页面"><a href="#新建标签页面" class="headerlink" title="新建标签页面"></a>新建标签页面</h4><p>在博客所在的根目录下执行</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new page tags</span><br></pre></td></tr></table></figure>
+
+<p>执行上面命令后会在source&#x2F;tags目录下生成一个index.md，修改index.md，在最顶部添加type: “tags”</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 所有标签</span><br><span class="line">date: 2019-07-07 15:11:51</span><br><span class="line"><span class="section">type: &quot;tags&quot;</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+
+<p>给文章添加标签</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 使用Hexo+NexT搭建个人博客</span><br><span class="line">date: 2019-07-07 14:53:50</span><br><span class="line"><span class="section"># 添加tags属性，多个标签使用数组的形式</span></span><br><span class="line"><span class="section">tags: []</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="新建分类页面"><a href="#新建分类页面" class="headerlink" title="新建分类页面"></a>新建分类页面</h4><p>在博客所在的根目录下执行</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new page categories</span><br></pre></td></tr></table></figure>
+
+
+
+<p>执行上面命令后会在source&#x2F;categories目录下生成一个index.md，修改index.md，在最顶部添加type: “categories”</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 所有分类</span><br><span class="line">date: 2019-07-07 15:08:40</span><br><span class="line"><span class="section">type: &quot;categories&quot;</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+
+<p>给文章添加分类</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 使用Hexo+NexT搭建个人博客</span><br><span class="line">date: 2019-07-07 14:53:50</span><br><span class="line"><span class="section">categories: 技术</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="新建文章"><a href="#新建文章" class="headerlink" title="新建文章"></a>新建文章</h4><p>在博客所在的根目录下执行</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new post post-title</span><br><span class="line">或者</span><br><span class="line">hexo new <span class="string">&quot;post title&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>执行上面命令后会在source&#x2F;_posts目录下生成一个post-title.md，新增内容，发布新的文章</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="section"># 当前文章大标题</span></span><br><span class="line">title: 使用Hexo+NexT搭建个人博客</span><br><span class="line"><span class="section"># 文章创建时间</span></span><br><span class="line">date: 2019-07-07 14:53:50</span><br><span class="line"><span class="section"># 当前文章的标签</span></span><br><span class="line">tags: [Hexo, NexT]</span><br><span class="line"><span class="section"># 当前文章所属的分类</span></span><br><span class="line">categories: 建站</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>建站</category>
+      </categories>
+      <tags>
+        <tag>Hexo</tag>
+        <tag>NexT</tag>
+      </tags>
+  </entry>
+</search>
