@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 8.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.youfun.top","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="在 Node.js 项目中，package.json 中的依赖版本号遵循 语义化版本（Semantic Versioning, SemVer） 规范，其格式与符号前缀直接影响依赖的安装策略和更新范围。本文将详细梳理常见的依赖版本说明方式及使用场景。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Node.js依赖版本说明">
+<meta property="og:url" content="https://blog.youfun.top/2025/10/23/nodejs-dependency-description/index.html">
+<meta property="og:site_name" content="红豆的博客">
+<meta property="og:description" content="在 Node.js 项目中，package.json 中的依赖版本号遵循 语义化版本（Semantic Versioning, SemVer） 规范，其格式与符号前缀直接影响依赖的安装策略和更新范围。本文将详细梳理常见的依赖版本说明方式及使用场景。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-10-23T02:31:38.000Z">
+<meta property="article:modified_time" content="2025-10-23T02:39:41.464Z">
+<meta property="article:author" content="红豆">
+<meta property="article:tag" content="Node.js">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.youfun.top/2025/10/23/nodejs-dependency-description/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Node.js依赖版本说明 | 红豆的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">红豆的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.youfun.top/2025/10/23/nodejs-dependency-description/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="红豆">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="红豆的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Node.js依赖版本说明
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-10-23 10:31:38 / 修改时间：10:39:41" itemprop="dateCreated datePublished" datetime="2025-10-23T10:31:38+08:00">2025-10-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在 Node.js 项目中，<code>package.json</code> 中的依赖版本号遵循 <strong>语义化版本（Semantic Versioning, SemVer）</strong> 规范，其格式与符号前缀直接影响依赖的安装策略和更新范围。本文将详细梳理常见的依赖版本说明方式及使用场景。</p>
+<h2 id="一、语义化版本基础规范"><a href="#一、语义化版本基础规范" class="headerlink" title="一、语义化版本基础规范"></a>一、语义化版本基础规范</h2><p>所有版本号的核心格式为：<code>主版本号.次版本号.补丁版本号</code>（即 <code>x.y.z</code>），各部分含义如下：</p>
+<ul>
+<li><strong>主版本号（x）</strong>：不兼容的 API 变更（Breaking Changes）</li>
+<li><strong>次版本号（y）</strong>：向后兼容的功能新增</li>
+<li><strong>补丁版本号（z）</strong>：向后兼容的问题修复</li>
+</ul>
+<h2 id="二、常见依赖版本说明方式"><a href="#二、常见依赖版本说明方式" class="headerlink" title="二、常见依赖版本说明方式"></a>二、常见依赖版本说明方式</h2><h3 id="1-精确版本（无符号前缀）"><a href="#1-精确版本（无符号前缀）" class="headerlink" title="1. 精确版本（无符号前缀）"></a>1. 精确版本（无符号前缀）</h3><ul>
+<li><p><strong>格式</strong>：<code>x.y.z</code>（无任何符号前缀）</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<p>json</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;lodash&quot;</span><span class="punctuation">:</span> <span class="string">&quot;4.17.21&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>说明</strong>：仅安装指定的精确版本，不会自动更新到任何其他版本（包括补丁和次要版本），确保依赖版本完全一致。</p>
+</li>
+<li><p><strong>适用场景</strong>：生产环境中对版本稳定性要求极高的核心依赖。</p>
+</li>
+</ul>
+<h3 id="2-兼容补丁版本（-符号）"><a href="#2-兼容补丁版本（-符号）" class="headerlink" title="2. 兼容补丁版本（^ 符号）"></a>2. 兼容补丁版本（^ 符号）</h3><ul>
+<li><p><strong>格式</strong>：<code>^x.y.z</code></p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<p>json</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;react&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^18.2.0&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>说明</strong>：允许更新 <strong>补丁版本</strong> 和 <strong>次要版本</strong>，禁止主版本更新（主版本变更可能包含不兼容修改）：</p>
+<ul>
+<li>示例中可安装 <code>18.2.1</code>、<code>18.3.0</code> 等，禁止 <code>19.0.0</code></li>
+<li>特殊情况：主版本号为 <code>0</code>（如 <code>^0.2.3</code>）时，仅允许补丁版本更新（开发阶段避免意外变更）</li>
+</ul>
+</li>
+<li><p><strong>适用场景</strong>：生产环境中需要平衡稳定性和安全性的依赖（可自动接收 bug 修复和功能更新）。</p>
+</li>
+</ul>
+<h3 id="3-兼容次要版本（-符号）"><a href="#3-兼容次要版本（-符号）" class="headerlink" title="3. 兼容次要版本（~ 符号）"></a>3. 兼容次要版本（~ 符号）</h3><ul>
+<li><p><strong>格式</strong>：<code>~x.y.z</code></p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<p>json</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;vue&quot;</span><span class="punctuation">:</span> <span class="string">&quot;~3.3.4&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>说明</strong>：仅允许更新 <strong>补丁版本</strong>，禁止次要版本和主版本更新：</p>
+<ul>
+<li>示例中可安装 <code>3.3.5</code>、<code>3.3.6</code> 等，禁止 <code>3.4.0</code> 或 <code>4.0.0</code></li>
+</ul>
+</li>
+<li><p><strong>适用场景</strong>：需要严格控制功能范围，仅接收 bug 修复的生产环境依赖。</p>
+</li>
+</ul>
+<h3 id="4-版本范围（比较符号-范围符）"><a href="#4-版本范围（比较符号-范围符）" class="headerlink" title="4. 版本范围（比较符号 &#x2F; 范围符）"></a>4. 版本范围（比较符号 &#x2F; 范围符）</h3><p>通过比较符号或 <code>-</code> 定义允许的版本范围，支持多条件组合：</p>
+<ul>
+<li><p><strong>格式示例</strong>：</p>
+<p>json</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;axios&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&gt;0.27.0&quot;</span><span class="punctuation">,</span>          <span class="comment">// 大于 0.27.0 的版本</span></span><br><span class="line">  <span class="attr">&quot;webpack&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&gt;=5.0.0 &lt;6.0.0&quot;</span><span class="punctuation">,</span> <span class="comment">// 5.0.0 及以上，且小于 6.0.0（不含6.0.0）</span></span><br><span class="line">    <span class="attr">&quot;typescript&quot;</span><span class="punctuation">:</span> <span class="string">&quot;4.5.0 - 4.9.0&quot;</span><span class="comment">// 4.5.0 到 4.9.0 之间（包含两端版本）</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>支持符号</strong>：<code>&gt;</code>（大于）、<code>&lt;</code>（小于）、<code>&gt;=</code>（大于等于）、<code>&lt;=</code>（小于等于）、<code>-</code>（范围连接）</p>
+</li>
+<li><p><strong>适用场景</strong>：需要限定依赖版本在特定区间内的场景（如兼容旧版 API）。</p>
+</li>
+</ul>
+<h3 id="5-最新版本（-或-latest）"><a href="#5-最新版本（-或-latest）" class="headerlink" title="5. 最新版本（* 或 latest）"></a>5. 最新版本（* 或 latest）</h3><ul>
+<li><p><strong>格式</strong>：<code>*</code>（任意版本）或 <code>&quot;latest&quot;</code>（最新发布版本）</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<p>json</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;lodash&quot;</span><span class="punctuation">:</span> <span class="string">&quot;*&quot;</span><span class="punctuation">,</span>          <span class="comment">// 等同于 &quot;latest&quot;</span></span><br><span class="line">  <span class="attr">&quot;moment&quot;</span><span class="punctuation">:</span> <span class="string">&quot;latest&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>说明</strong>：自动安装该依赖的最新发布版本，无需手动指定版本号。</p>
+</li>
+<li><p><strong>注意</strong>：<strong>不推荐生产环境使用</strong>，可能因主版本更新引入不兼容变更。</p>
+</li>
+<li><p><strong>适用场景</strong>：开发环境临时依赖或非核心工具类依赖。</p>
+</li>
+</ul>
+<h3 id="6-预发布版本（alpha-beta-rc）"><a href="#6-预发布版本（alpha-beta-rc）" class="headerlink" title="6. 预发布版本（alpha&#x2F;beta&#x2F;rc）"></a>6. 预发布版本（alpha&#x2F;beta&#x2F;rc）</h3><ul>
+<li><p><strong>格式</strong>：<code>x.y.z-预发布标签</code>（标签常用 <code>alpha</code>、<code>beta</code>、<code>rc</code>）</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<p>json</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;next&quot;</span><span class="punctuation">:</span> <span class="string">&quot;14.0.0-beta.1&quot;</span><span class="punctuation">,</span>  <span class="comment">// Beta 测试版</span></span><br><span class="line">  <span class="attr">&quot;react&quot;</span><span class="punctuation">:</span> <span class="string">&quot;19.0.0-alpha.3&quot;</span> <span class="comment">// Alpha 开发版</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>说明</strong>：指定安装预发布版本，用于测试新功能或验证兼容性。</p>
+</li>
+<li><p><strong>适用场景</strong>：开发环境中提前适配依赖的新特性。</p>
+</li>
+</ul>
+<h3 id="7-本地依赖与-Git-依赖"><a href="#7-本地依赖与-Git-依赖" class="headerlink" title="7. 本地依赖与 Git 依赖"></a>7. 本地依赖与 Git 依赖</h3><p>除 SemVer 格式外，还支持直接引用本地包或 Git 仓库：</p>
+<ul>
+<li><p><strong>本地路径依赖</strong>：</p>
+<p>json</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;my-local-package&quot;</span><span class="punctuation">:</span> <span class="string">&quot;file:../local-package&quot;</span> <span class="comment">// 引用本地目录中的包</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>适用场景：本地开发中的私有包测试。</li>
+</ul>
+</li>
+<li><p><strong>Git 仓库依赖</strong>：</p>
+<p>json</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;vue&quot;</span><span class="punctuation">:</span> <span class="string">&quot;git+https://github.com/vuejs/vue.git#v3.3.4&quot;</span> <span class="comment">// 指定Git仓库+版本标签</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>格式说明：<code>git+仓库地址#版本标识</code>（版本标识可为 tag、branch 或 commit 哈希）</li>
+</ul>
+</li>
+<li><p>适用场景：需要使用依赖的特定 Git 分支或未发布版本。</p>
+</li>
+</ul>
+<h2 id="三、依赖分类与安装命令"><a href="#三、依赖分类与安装命令" class="headerlink" title="三、依赖分类与安装命令"></a>三、依赖分类与安装命令</h2><h3 id="1-依赖分类"><a href="#1-依赖分类" class="headerlink" title="1. 依赖分类"></a>1. 依赖分类</h3><ul>
+<li><strong><code>dependencies</code></strong>：生产环境依赖，会被打包到最终产物（如前端构建产物、Node.js 服务代码）。<ul>
+<li>安装命令：<code>npm install &lt;package&gt;</code> 或 <code>yarn add &lt;package&gt;</code></li>
+</ul>
+</li>
+<li><strong><code>devDependencies</code></strong>：开发环境依赖（如构建工具、测试框架、代码检查工具），不参与生产环境打包。<ul>
+<li>安装命令：<code>npm install --save-dev &lt;package&gt;</code> 或 <code>yarn add --dev &lt;package&gt;</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-版本锁定机制"><a href="#2-版本锁定机制" class="headerlink" title="2. 版本锁定机制"></a>2. 版本锁定机制</h3><ul>
+<li><code>package-lock.json</code>（npm）&#x2F; <code>yarn.lock</code>（Yarn）：自动生成的锁定文件，记录依赖的精确版本（包括间接依赖），确保团队成员、CI&#x2F;CD 环境安装完全一致的依赖。</li>
+<li>注意：提交代码时需将锁定文件纳入版本控制（Git），避免因依赖版本差异导致的环境问题。</li>
+</ul>
+<h2 id="四、最佳实践"><a href="#四、最佳实践" class="headerlink" title="四、最佳实践"></a>四、最佳实践</h2><ol>
+<li><strong>生产环境</strong>：优先使用 <code>^x.y.z</code>（兼容补丁和次要版本）或精确版本，避免 <code>*</code>、<code>latest</code> 或大范围版本范围，降低版本变更风险。</li>
+<li><strong>开发环境</strong>：可使用 <code>^</code> 或 <code>~</code>，方便接收工具类依赖的更新。</li>
+<li><strong>核心依赖</strong>：对影响系统稳定性的核心依赖（如框架、数据库驱动），建议使用精确版本或 <code>~</code> 符号，严格控制更新范围。</li>
+<li><strong>预发布版本</strong>：仅在开发 &#x2F; 测试环境使用，禁止直接用于生产环境。</li>
+<li><strong>版本锁定</strong>：务必提交 <code>package-lock.json</code>&#x2F;<code>yarn.lock</code>，确保多环境一致性。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Node-js/" rel="tag"># Node.js</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/10/22/how-to-build-blog-with-hexo/" rel="prev" title="使用Hexo+NexT搭建个人博客">
+      <i class="fa fa-chevron-left"></i> 使用Hexo+NexT搭建个人博客
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E8%AF%AD%E4%B9%89%E5%8C%96%E7%89%88%E6%9C%AC%E5%9F%BA%E7%A1%80%E8%A7%84%E8%8C%83"><span class="nav-number">1.</span> <span class="nav-text">一、语义化版本基础规范</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%B8%B8%E8%A7%81%E4%BE%9D%E8%B5%96%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E%E6%96%B9%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">二、常见依赖版本说明方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%B2%BE%E7%A1%AE%E7%89%88%E6%9C%AC%EF%BC%88%E6%97%A0%E7%AC%A6%E5%8F%B7%E5%89%8D%E7%BC%80%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">1. 精确版本（无符号前缀）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%85%BC%E5%AE%B9%E8%A1%A5%E4%B8%81%E7%89%88%E6%9C%AC%EF%BC%88-%E7%AC%A6%E5%8F%B7%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">2. 兼容补丁版本（^ 符号）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%85%BC%E5%AE%B9%E6%AC%A1%E8%A6%81%E7%89%88%E6%9C%AC%EF%BC%88-%E7%AC%A6%E5%8F%B7%EF%BC%89"><span class="nav-number">2.3.</span> <span class="nav-text">3. 兼容次要版本（~ 符号）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E7%89%88%E6%9C%AC%E8%8C%83%E5%9B%B4%EF%BC%88%E6%AF%94%E8%BE%83%E7%AC%A6%E5%8F%B7-%E8%8C%83%E5%9B%B4%E7%AC%A6%EF%BC%89"><span class="nav-number">2.4.</span> <span class="nav-text">4. 版本范围（比较符号 &#x2F; 范围符）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC%EF%BC%88-%E6%88%96-latest%EF%BC%89"><span class="nav-number">2.5.</span> <span class="nav-text">5. 最新版本（* 或 latest）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E9%A2%84%E5%8F%91%E5%B8%83%E7%89%88%E6%9C%AC%EF%BC%88alpha-beta-rc%EF%BC%89"><span class="nav-number">2.6.</span> <span class="nav-text">6. 预发布版本（alpha&#x2F;beta&#x2F;rc）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E6%9C%AC%E5%9C%B0%E4%BE%9D%E8%B5%96%E4%B8%8E-Git-%E4%BE%9D%E8%B5%96"><span class="nav-number">2.7.</span> <span class="nav-text">7. 本地依赖与 Git 依赖</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E4%BE%9D%E8%B5%96%E5%88%86%E7%B1%BB%E4%B8%8E%E5%AE%89%E8%A3%85%E5%91%BD%E4%BB%A4"><span class="nav-number">3.</span> <span class="nav-text">三、依赖分类与安装命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BE%9D%E8%B5%96%E5%88%86%E7%B1%BB"><span class="nav-number">3.1.</span> <span class="nav-text">1. 依赖分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%89%88%E6%9C%AC%E9%94%81%E5%AE%9A%E6%9C%BA%E5%88%B6"><span class="nav-number">3.2.</span> <span class="nav-text">2. 版本锁定机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-number">4.</span> <span class="nav-text">四、最佳实践</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">红豆</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">红豆</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
