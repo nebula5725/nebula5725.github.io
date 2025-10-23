@@ -28,7 +28,7 @@
 <meta property="og:description" content="在 Node.js 项目中，package.json 中的依赖版本号遵循 语义化版本（Semantic Versioning, SemVer） 规范，其格式与符号前缀直接影响依赖的安装策略和更新范围。本文将详细梳理常见的依赖版本说明方式及使用场景。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-10-23T02:31:38.000Z">
-<meta property="article:modified_time" content="2025-10-23T02:39:41.464Z">
+<meta property="article:modified_time" content="2025-10-23T02:46:24.313Z">
 <meta property="article:author" content="红豆">
 <meta property="article:tag" content="Node.js">
 <meta name="twitter:card" content="summary">
@@ -190,7 +190,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2025-10-23 10:31:38 / 修改时间：10:39:41" itemprop="dateCreated datePublished" datetime="2025-10-23T10:31:38+08:00">2025-10-23</time>
+              <time title="创建时间：2025-10-23 10:31:38 / 修改时间：10:46:24" itemprop="dateCreated datePublished" datetime="2025-10-23T10:31:38+08:00">2025-10-23</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -224,7 +224,6 @@
 <li><p><strong>格式</strong>：<code>x.y.z</code>（无任何符号前缀）</p>
 </li>
 <li><p><strong>示例</strong>：</p>
-<p>json</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;lodash&quot;</span><span class="punctuation">:</span> <span class="string">&quot;4.17.21&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 </li>
 <li><p><strong>说明</strong>：仅安装指定的精确版本，不会自动更新到任何其他版本（包括补丁和次要版本），确保依赖版本完全一致。</p>
@@ -236,7 +235,6 @@
 <li><p><strong>格式</strong>：<code>^x.y.z</code></p>
 </li>
 <li><p><strong>示例</strong>：</p>
-<p>json</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;react&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^18.2.0&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 </li>
 <li><p><strong>说明</strong>：允许更新 <strong>补丁版本</strong> 和 <strong>次要版本</strong>，禁止主版本更新（主版本变更可能包含不兼容修改）：</p>
@@ -252,7 +250,6 @@
 <li><p><strong>格式</strong>：<code>~x.y.z</code></p>
 </li>
 <li><p><strong>示例</strong>：</p>
-<p>json</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;vue&quot;</span><span class="punctuation">:</span> <span class="string">&quot;~3.3.4&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 </li>
 <li><p><strong>说明</strong>：仅允许更新 <strong>补丁版本</strong>，禁止次要版本和主版本更新：</p>
@@ -266,8 +263,7 @@
 <h3 id="4-版本范围（比较符号-范围符）"><a href="#4-版本范围（比较符号-范围符）" class="headerlink" title="4. 版本范围（比较符号 &#x2F; 范围符）"></a>4. 版本范围（比较符号 &#x2F; 范围符）</h3><p>通过比较符号或 <code>-</code> 定义允许的版本范围，支持多条件组合：</p>
 <ul>
 <li><p><strong>格式示例</strong>：</p>
-<p>json</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;axios&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&gt;0.27.0&quot;</span><span class="punctuation">,</span>          <span class="comment">// 大于 0.27.0 的版本</span></span><br><span class="line">  <span class="attr">&quot;webpack&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&gt;=5.0.0 &lt;6.0.0&quot;</span><span class="punctuation">,</span> <span class="comment">// 5.0.0 及以上，且小于 6.0.0（不含6.0.0）</span></span><br><span class="line">    <span class="attr">&quot;typescript&quot;</span><span class="punctuation">:</span> <span class="string">&quot;4.5.0 - 4.9.0&quot;</span><span class="comment">// 4.5.0 到 4.9.0 之间（包含两端版本）</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;axios&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&gt;0.27.0&quot;</span><span class="punctuation">,</span>          <span class="comment">// 大于 0.27.0 的版本</span></span><br><span class="line"><span class="attr">&quot;webpack&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&gt;=5.0.0 &lt;6.0.0&quot;</span><span class="punctuation">,</span> <span class="comment">// 5.0.0 及以上，且小于 6.0.0（不含6.0.0）</span></span><br><span class="line">    <span class="attr">&quot;typescript&quot;</span><span class="punctuation">:</span> <span class="string">&quot;4.5.0 - 4.9.0&quot;</span><span class="comment">// 4.5.0 到 4.9.0 之间（包含两端版本）</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 </li>
 <li><p><strong>支持符号</strong>：<code>&gt;</code>（大于）、<code>&lt;</code>（小于）、<code>&gt;=</code>（大于等于）、<code>&lt;=</code>（小于等于）、<code>-</code>（范围连接）</p>
 </li>
@@ -278,7 +274,6 @@
 <li><p><strong>格式</strong>：<code>*</code>（任意版本）或 <code>&quot;latest&quot;</code>（最新发布版本）</p>
 </li>
 <li><p><strong>示例</strong>：</p>
-<p>json</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;lodash&quot;</span><span class="punctuation">:</span> <span class="string">&quot;*&quot;</span><span class="punctuation">,</span>          <span class="comment">// 等同于 &quot;latest&quot;</span></span><br><span class="line">  <span class="attr">&quot;moment&quot;</span><span class="punctuation">:</span> <span class="string">&quot;latest&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 </li>
 <li><p><strong>说明</strong>：自动安装该依赖的最新发布版本，无需手动指定版本号。</p>
@@ -292,7 +287,6 @@
 <li><p><strong>格式</strong>：<code>x.y.z-预发布标签</code>（标签常用 <code>alpha</code>、<code>beta</code>、<code>rc</code>）</p>
 </li>
 <li><p><strong>示例</strong>：</p>
-<p>json</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;next&quot;</span><span class="punctuation">:</span> <span class="string">&quot;14.0.0-beta.1&quot;</span><span class="punctuation">,</span>  <span class="comment">// Beta 测试版</span></span><br><span class="line">  <span class="attr">&quot;react&quot;</span><span class="punctuation">:</span> <span class="string">&quot;19.0.0-alpha.3&quot;</span> <span class="comment">// Alpha 开发版</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 </li>
 <li><p><strong>说明</strong>：指定安装预发布版本，用于测试新功能或验证兼容性。</p>
@@ -303,7 +297,6 @@
 <h3 id="7-本地依赖与-Git-依赖"><a href="#7-本地依赖与-Git-依赖" class="headerlink" title="7. 本地依赖与 Git 依赖"></a>7. 本地依赖与 Git 依赖</h3><p>除 SemVer 格式外，还支持直接引用本地包或 Git 仓库：</p>
 <ul>
 <li><p><strong>本地路径依赖</strong>：</p>
-<p>json</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;my-local-package&quot;</span><span class="punctuation">:</span> <span class="string">&quot;file:../local-package&quot;</span> <span class="comment">// 引用本地目录中的包</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
 <ul>
@@ -311,7 +304,6 @@
 </ul>
 </li>
 <li><p><strong>Git 仓库依赖</strong>：</p>
-<p>json</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;vue&quot;</span><span class="punctuation">:</span> <span class="string">&quot;git+https://github.com/vuejs/vue.git#v3.3.4&quot;</span> <span class="comment">// 指定Git仓库+版本标签</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
 <ul>
