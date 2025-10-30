@@ -367,7 +367,7 @@
 <p><code>--key=value</code>（命令行后参数） &gt; <code>-Dkey=value</code>（JVM 参数） &gt; 环境变量 &gt; <code>application-{profile}.yml</code> &gt; <code>application.yml</code></p>
 ]]></content>
       <categories>
-        <category>后档</category>
+        <category>后端</category>
       </categories>
       <tags>
         <tag>SpringBoot</tag>
