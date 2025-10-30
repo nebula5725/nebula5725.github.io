@@ -20,13 +20,15 @@
     var CONFIG = {"hostname":"blog.youfun.top","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta property="og:type" content="article">
+  <meta name="description" content="在 Spring Boot 以 JAR 包形式启动时，不同类型的参数（如 JVM 参数、应用参数、Spring 配置参数等）的位置和作用各不相同，错误的位置可能导致参数不生效。以下是详细说明：">
+<meta property="og:type" content="article">
 <meta property="og:title" content="SpringBoot启动参数加载">
 <meta property="og:url" content="https://blog.youfun.top/2025/10/30/springboot-parameters-load/index.html">
 <meta property="og:site_name" content="红豆的博客">
+<meta property="og:description" content="在 Spring Boot 以 JAR 包形式启动时，不同类型的参数（如 JVM 参数、应用参数、Spring 配置参数等）的位置和作用各不相同，错误的位置可能导致参数不生效。以下是详细说明：">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-10-30T03:07:49.000Z">
-<meta property="article:modified_time" content="2025-10-30T03:11:23.869Z">
+<meta property="article:modified_time" content="2025-10-30T03:41:06.616Z">
 <meta property="article:author" content="红豆">
 <meta property="article:tag" content="SpringBoot">
 <meta name="twitter:card" content="summary">
@@ -188,7 +190,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2025-10-30 11:07:49 / 修改时间：11:11:23" itemprop="dateCreated datePublished" datetime="2025-10-30T11:07:49+08:00">2025-10-30</time>
+              <time title="创建时间：2025-10-30 11:07:49 / 修改时间：11:41:06" itemprop="dateCreated datePublished" datetime="2025-10-30T11:07:49+08:00">2025-10-30</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -211,7 +213,125 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        
+        <p>在 Spring Boot 以 JAR 包形式启动时，不同类型的参数（如 JVM 参数、应用参数、Spring 配置参数等）的位置和作用各不相同，错误的位置可能导致参数不生效。以下是详细说明：</p>
+<h3 id="一、参数类型及位置规则"><a href="#一、参数类型及位置规则" class="headerlink" title="一、参数类型及位置规则"></a>一、参数类型及位置规则</h3><p>Spring Boot JAR 启动命令的基本格式为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java [JVM参数] -jar [jar包路径] [应用参数/Spring参数]</span><br></pre></td></tr></table></figure>
+
+<p><strong>核心规则</strong>：</p>
+<ul>
+<li><strong>JVM 参数</strong> 必须放在 <code>-jar</code> 前面。</li>
+<li><strong>应用参数 &#x2F; Spring 配置参数</strong> 必须放在 <code>-jar</code> 后面（即 JAR 包路径之后）。</li>
+</ul>
+<h3 id="二、具体参数类型及示例"><a href="#二、具体参数类型及示例" class="headerlink" title="二、具体参数类型及示例"></a>二、具体参数类型及示例</h3><h4 id="1-JVM-参数（放在-jar-前面）"><a href="#1-JVM-参数（放在-jar-前面）" class="headerlink" title="1. JVM 参数（放在 -jar 前面）"></a>1. JVM 参数（放在 <code>-jar</code> 前面）</h4><p>用于配置 JVM 运行环境（如内存、编码、系统属性等），格式通常为 <code>-Dkey=value</code> 或 <code>-Xxx</code>。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>系统属性</td>
+<td><code>-Dspring.profiles.active=prod</code></td>
+<td>通过 <code>-D</code> 定义，会被 Spring 识别为配置参数（等效于 <code>application.yml</code> 中的配置）</td>
+</tr>
+<tr>
+<td>JVM 内存配置</td>
+<td><code>-Xms512m -Xmx1024m</code></td>
+<td>初始 &#x2F; 最大堆内存，必须放在 <code>-jar</code> 前</td>
+</tr>
+<tr>
+<td>编码配置</td>
+<td><code>-Dfile.encoding=UTF-8</code></td>
+<td>配置系统文件编码</td>
+</tr>
+</tbody></table>
+<p><strong>示例</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -Xms512m -Xmx1024m -Dspring.profiles.active=prod -jar app.jar</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-应用参数（放在-jar-后面）"><a href="#2-应用参数（放在-jar-后面）" class="headerlink" title="2. 应用参数（放在 -jar 后面）"></a>2. 应用参数（放在 <code>-jar</code> 后面）</h4><p>分为两种：<strong>Spring 配置参数</strong>（覆盖 <code>application.yml</code> 配置）和 <strong>自定义业务参数</strong>（供代码中读取）。</p>
+<h5 id="（1）Spring-配置参数（-key-value-格式）"><a href="#（1）Spring-配置参数（-key-value-格式）" class="headerlink" title="（1）Spring 配置参数（--key=value 格式）"></a>（1）Spring 配置参数（<code>--key=value</code> 格式）</h5><p>用于覆盖 <code>application.yml</code> 或 <code>application.properties</code> 中的配置，格式为 <code>--key=value</code>（等效于 <code>-D</code> 参数，但位置不同）。</p>
+<p><strong>示例</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar app.jar --server.port=8081 --spring.datasource.url=jdbc:mysql://localhost:3306/db</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>等效于在 <code>application.yml</code> 中配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8081</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">jdbc:mysql://localhost:3306/db</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="（2）自定义业务参数（无固定格式，供代码读取）"><a href="#（2）自定义业务参数（无固定格式，供代码读取）" class="headerlink" title="（2）自定义业务参数（无固定格式，供代码读取）"></a>（2）自定义业务参数（无固定格式，供代码读取）</h5><p>非 Spring 内置的参数，通常用于传递业务开关、临时参数等，需在代码中通过 <code>args</code> 数组读取。</p>
+<p><strong>示例</strong>：</p>
+<p>启动命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar app.jar --<span class="built_in">env</span>=<span class="built_in">test</span> --debug=<span class="literal">true</span> 12345</span><br></pre></td></tr></table></figure>
+
+<p>代码中读取（在 <code>main</code> 方法中）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">App</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="comment">// args 数组会接收所有 `-jar` 后面的参数</span></span><br><span class="line">        <span class="keyword">for</span> (String arg : args) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;参数：&quot;</span> + arg); <span class="comment">// 输出：--env=test、--debug=true、12345</span></span><br><span class="line">        &#125;</span><br><span class="line">        SpringApplication.run(App.class, args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-特殊参数：短横线参数（-key-value）"><a href="#3-特殊参数：短横线参数（-key-value）" class="headerlink" title="3. 特殊参数：短横线参数（-key=value）"></a>3. 特殊参数：短横线参数（<code>-key=value</code>）</h4><p>Spring Boot 也支持短横线格式（<code>-key=value</code>），功能与 <code>--key=value</code> 一致，用于覆盖 Spring 配置：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar app.jar -server.port=8081 -spring.profiles.active=dev</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>注意：短横线参数仅推荐用于 Spring 配置，自定义参数建议用 <code>--</code> 或无符号格式，避免歧义。</li>
+</ul>
+<h3 id="三、常见错误及注意事项"><a href="#三、常见错误及注意事项" class="headerlink" title="三、常见错误及注意事项"></a>三、常见错误及注意事项</h3><ol>
+<li><p><strong>JVM 参数放错位置</strong>：</p>
+<p>错误：<code>java -jar app.jar -Xmx1024m</code>（<code>-Xmx</code> 是 JVM 参数，必须在 <code>-jar</code> 前）</p>
+<p>正确：<code>java -Xmx1024m -jar app.jar</code></p>
+</li>
+<li><p><strong>Spring 配置参数放错位置</strong>：</p>
+<p>错误：<code>java --server.port=8081 -jar app.jar</code>（<code>--server.port</code> 是 Spring 参数，必须在 <code>-jar</code> 后）</p>
+<p>正确：<code>java -jar app.jar --server.port=8081</code></p>
+</li>
+<li><p><strong><code>-D</code> 参数与 <code>--</code> 参数的区别</strong>：</p>
+<ul>
+<li><code>-Dkey=value</code> 是 JVM 系统属性，可被 Spring 识别为配置，<strong>必须放在 <code>-jar</code> 前</strong>。</li>
+<li><code>--key=value</code> 是 Spring 应用参数，<strong>必须放在 <code>-jar</code> 后</strong>，优先级高于 <code>-D</code> 参数和配置文件。</li>
+</ul>
+</li>
+<li><p><strong>参数值包含空格或特殊字符</strong>：</p>
+<p>若参数值含空格（如路径 <code>C:\Program Files</code>），需用引号包裹：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar app.jar --file.path=<span class="string">&quot;C:\Program Files\data&quot;</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="四、环境变量"><a href="#四、环境变量" class="headerlink" title="四、环境变量"></a>四、环境变量</h3><h4 id="1-本地开发环境（Windows-macOS-Linux）"><a href="#1-本地开发环境（Windows-macOS-Linux）" class="headerlink" title="1. 本地开发环境（Windows&#x2F;macOS&#x2F;Linux）"></a>1. 本地开发环境（Windows&#x2F;macOS&#x2F;Linux）</h4><h5 id="（1）临时设置（仅当前终端有效）"><a href="#（1）临时设置（仅当前终端有效）" class="headerlink" title="（1）临时设置（仅当前终端有效）"></a>（1）临时设置（仅当前终端有效）</h5><ul>
+<li><p><strong>Windows（cmd 命令行）</strong>：</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> SPRING_PROFILES_ACTIVE=dev  # 设置环境变量</span><br><span class="line"><span class="built_in">set</span> SERVER_PORT=<span class="number">8081</span></span><br><span class="line">java -jar app.jar  # 启动应用，会读取上述变量</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Windows（PowerShell）</strong>：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:SPRING_PROFILES_ACTIVE</span> = <span class="string">&quot;dev&quot;</span></span><br><span class="line"><span class="variable">$env:SERVER_PORT</span> = <span class="string">&quot;8081&quot;</span></span><br><span class="line">java <span class="literal">-jar</span> app.jar</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>macOS&#x2F;Linux（bash&#x2F;zsh）</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> SPRING_PROFILES_ACTIVE=dev  <span class="comment"># 设置环境变量</span></span><br><span class="line"><span class="built_in">export</span> SERVER_PORT=8081</span><br><span class="line">java -jar app.jar  <span class="comment"># 启动应用</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="（2）永久设置（重启终端后仍有效）"><a href="#（2）永久设置（重启终端后仍有效）" class="headerlink" title="（2）永久设置（重启终端后仍有效）"></a>（2）永久设置（重启终端后仍有效）</h5><ul>
+<li><p><strong>Windows</strong>：</p>
+<ol>
+<li>右键 “此电脑”→“属性”→“高级系统设置”→“环境变量”。</li>
+<li>在 “系统变量” 或 “用户变量” 中点击 “新建”，输入变量名（如 <code>SPRING_PROFILES_ACTIVE</code>）和值（如 <code>dev</code>）。</li>
+<li>重启终端后生效。</li>
+</ol>
+</li>
+<li><p><strong>macOS&#x2F;Linux</strong>：</p>
+<ol>
+<li><p>编辑终端配置文件（如 <code>~/.bashrc</code>、<code>~/.zshrc</code>，根据使用的 Shell 选择）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim ~/.bashrc</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在文件末尾添加环境变量：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> SPRING_PROFILES_ACTIVE=dev</span><br><span class="line"><span class="built_in">export</span> SERVER_PORT=8081</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>生效配置：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> ~/.bashrc  <span class="comment"># 或重启终端</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+</li>
+</ul>
+<h4 id="2-Docker-容器中设置环境变量"><a href="#2-Docker-容器中设置环境变量" class="headerlink" title="2. Docker 容器中设置环境变量"></a>2. Docker 容器中设置环境变量</h4><p>在 Docker 中运行 Spring Boot 应用时，可通过 <code>--env</code>（或 <code>-e</code>）参数设置环境变量，或在 <code>Dockerfile</code> 中预先定义。</p>
+<h5 id="（1）启动容器时通过命令设置"><a href="#（1）启动容器时通过命令设置" class="headerlink" title="（1）启动容器时通过命令设置"></a>（1）启动容器时通过命令设置</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">  -p 8080:8080 \</span><br><span class="line">  -e <span class="string">&quot;SPRING_PROFILES_ACTIVE=prod&quot;</span> \  <span class="comment"># 设置环境变量</span></span><br><span class="line">  -e <span class="string">&quot;SERVER_PORT=8080&quot;</span> \</span><br><span class="line">  -e <span class="string">&quot;SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/app&quot;</span> \</span><br><span class="line">  --name myapp \</span><br><span class="line">  myapp:latest  <span class="comment"># 镜像名</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="（2）在-Dockerfile-中预先定义"><a href="#（2）在-Dockerfile-中预先定义" class="headerlink" title="（2）在 Dockerfile 中预先定义"></a>（2）在 Dockerfile 中预先定义</h5><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> openjdk:<span class="number">11</span>-jre-slim</span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /app</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> target/app.jar app.jar</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置环境变量（容器启动时可被覆盖）</span></span><br><span class="line"><span class="keyword">ENV</span> SPRING_PROFILES_ACTIVE=prod</span><br><span class="line"><span class="keyword">ENV</span> SERVER_PORT=<span class="number">8080</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ENTRYPOINT</span><span class="language-bash"> [<span class="string">&quot;java&quot;</span>, <span class="string">&quot;-jar&quot;</span>, <span class="string">&quot;app.jar&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+
+<p>启动时若通过 <code>-e</code> 传递新值，会覆盖 <code>Dockerfile</code> 中 <code>ENV</code> 定义的值。</p>
+<h3 id="五、优先级总结（Spring-配置参数）"><a href="#五、优先级总结（Spring-配置参数）" class="headerlink" title="五、优先级总结（Spring 配置参数）"></a>五、优先级总结（Spring 配置参数）</h3><p>当同一配置（如 <code>server.port</code>）通过多种方式设置时，优先级从高到低为：</p>
+<p><code>--key=value</code>（命令行后参数） &gt; <code>-Dkey=value</code>（JVM 参数） &gt; 环境变量 &gt; <code>application-{profile}.yml</code> &gt; <code>application.yml</code></p>
+
     </div>
 
     
@@ -291,6 +411,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%8F%82%E6%95%B0%E7%B1%BB%E5%9E%8B%E5%8F%8A%E4%BD%8D%E7%BD%AE%E8%A7%84%E5%88%99"><span class="nav-number">1.</span> <span class="nav-text">一、参数类型及位置规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%85%B7%E4%BD%93%E5%8F%82%E6%95%B0%E7%B1%BB%E5%9E%8B%E5%8F%8A%E7%A4%BA%E4%BE%8B"><span class="nav-number">2.</span> <span class="nav-text">二、具体参数类型及示例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-JVM-%E5%8F%82%E6%95%B0%EF%BC%88%E6%94%BE%E5%9C%A8-jar-%E5%89%8D%E9%9D%A2%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">1. JVM 参数（放在 -jar 前面）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%BA%94%E7%94%A8%E5%8F%82%E6%95%B0%EF%BC%88%E6%94%BE%E5%9C%A8-jar-%E5%90%8E%E9%9D%A2%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">2. 应用参数（放在 -jar 后面）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%EF%BC%881%EF%BC%89Spring-%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%EF%BC%88-key-value-%E6%A0%BC%E5%BC%8F%EF%BC%89"><span class="nav-number">2.2.1.</span> <span class="nav-text">（1）Spring 配置参数（--key&#x3D;value 格式）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%EF%BC%882%EF%BC%89%E8%87%AA%E5%AE%9A%E4%B9%89%E4%B8%9A%E5%8A%A1%E5%8F%82%E6%95%B0%EF%BC%88%E6%97%A0%E5%9B%BA%E5%AE%9A%E6%A0%BC%E5%BC%8F%EF%BC%8C%E4%BE%9B%E4%BB%A3%E7%A0%81%E8%AF%BB%E5%8F%96%EF%BC%89"><span class="nav-number">2.2.2.</span> <span class="nav-text">（2）自定义业务参数（无固定格式，供代码读取）</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E7%89%B9%E6%AE%8A%E5%8F%82%E6%95%B0%EF%BC%9A%E7%9F%AD%E6%A8%AA%E7%BA%BF%E5%8F%82%E6%95%B0%EF%BC%88-key-value%EF%BC%89"><span class="nav-number">2.3.</span> <span class="nav-text">3. 特殊参数：短横线参数（-key&#x3D;value）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E5%8F%8A%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">3.</span> <span class="nav-text">三、常见错误及注意事项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="nav-number">4.</span> <span class="nav-text">四、环境变量</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%EF%BC%88Windows-macOS-Linux%EF%BC%89"><span class="nav-number">4.1.</span> <span class="nav-text">1. 本地开发环境（Windows&#x2F;macOS&#x2F;Linux）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%EF%BC%881%EF%BC%89%E4%B8%B4%E6%97%B6%E8%AE%BE%E7%BD%AE%EF%BC%88%E4%BB%85%E5%BD%93%E5%89%8D%E7%BB%88%E7%AB%AF%E6%9C%89%E6%95%88%EF%BC%89"><span class="nav-number">4.1.1.</span> <span class="nav-text">（1）临时设置（仅当前终端有效）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%EF%BC%882%EF%BC%89%E6%B0%B8%E4%B9%85%E8%AE%BE%E7%BD%AE%EF%BC%88%E9%87%8D%E5%90%AF%E7%BB%88%E7%AB%AF%E5%90%8E%E4%BB%8D%E6%9C%89%E6%95%88%EF%BC%89"><span class="nav-number">4.1.2.</span> <span class="nav-text">（2）永久设置（重启终端后仍有效）</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Docker-%E5%AE%B9%E5%99%A8%E4%B8%AD%E8%AE%BE%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="nav-number">4.2.</span> <span class="nav-text">2. Docker 容器中设置环境变量</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%EF%BC%881%EF%BC%89%E5%90%AF%E5%8A%A8%E5%AE%B9%E5%99%A8%E6%97%B6%E9%80%9A%E8%BF%87%E5%91%BD%E4%BB%A4%E8%AE%BE%E7%BD%AE"><span class="nav-number">4.2.1.</span> <span class="nav-text">（1）启动容器时通过命令设置</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%EF%BC%882%EF%BC%89%E5%9C%A8-Dockerfile-%E4%B8%AD%E9%A2%84%E5%85%88%E5%AE%9A%E4%B9%89"><span class="nav-number">4.2.2.</span> <span class="nav-text">（2）在 Dockerfile 中预先定义</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E4%BC%98%E5%85%88%E7%BA%A7%E6%80%BB%E7%BB%93%EF%BC%88Spring-%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%EF%BC%89"><span class="nav-number">5.</span> <span class="nav-text">五、优先级总结（Spring 配置参数）</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
