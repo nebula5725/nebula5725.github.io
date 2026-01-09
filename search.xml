@@ -373,4 +373,147 @@
         <tag>SpringBoot</tag>
       </tags>
   </entry>
+  <entry>
+    <title>JAVA线程池参数配置（生产级 + 公式 + 实操）</title>
+    <url>/2026/01/09/how-to-confirm-java-threadpool-params/</url>
+    <content><![CDATA[<p><strong>没有固定的万能值，但有「业界公认的最优计算公式 + 分场景规则 + 调优方法」</strong>，所有规则都是生产环境验证过的，看完你能直接套用，彻底解决线程数配置难题。</p>
+<blockquote>
+<p>前置说明：我们的所有配置规则，都是基于 <strong>ThreadPoolExecutor + 有界队列</strong>（生产首选，无 OOM 风险），无界队列因为<code>maximumPoolSize</code>失效，只需要配置<code>corePoolSize</code>即可。</p>
+</blockquote>
+<h2 id="一、核心前提：线程池的任务类型，是所有配置的「唯一核心依据」"><a href="#一、核心前提：线程池的任务类型，是所有配置的「唯一核心依据」" class="headerlink" title="一、核心前提：线程池的任务类型，是所有配置的「唯一核心依据」"></a>一、核心前提：线程池的任务类型，是所有配置的「唯一核心依据」</h2><p>线程池执行的任务，决定了 CPU 的工作状态，<strong>线程数的配置完全取决于任务类型</strong>，这是所有规则的根基，必须先区分清楚，<strong>分 2 大类，无例外</strong>：</p>
+<h3 id="✅-类型-1：CPU-密集型任务-CPU-bound"><a href="#✅-类型-1：CPU-密集型任务-CPU-bound" class="headerlink" title="✅ 类型 1：CPU 密集型任务 (CPU-bound)"></a>✅ 类型 1：CPU 密集型任务 (CPU-bound)</h3><ul>
+<li><strong>任务特征</strong>：任务的执行逻辑全是<strong>纯计算、循环、数据处理、内存操作</strong>，几乎没有 IO 等待，CPU 会被 100% 占满，比如：数据排序、加密解密、数学运算、JSON 序列化 &#x2F; 反序列化。</li>
+<li><strong>核心痛点</strong>：CPU 是执行瓶颈，线程数过多会导致<strong>CPU 上下文切换极其频繁</strong>（CPU 在多个线程间来回切换执行），上下文切换本身会消耗 CPU 资源，线程越多→切换越频繁→总吞吐量<strong>不升反降</strong>，甚至程序卡顿。</li>
+</ul>
+<h3 id="✅-类型-2：IO-密集型任务-IO-bound-【生产-90-的场景都是这个】"><a href="#✅-类型-2：IO-密集型任务-IO-bound-【生产-90-的场景都是这个】" class="headerlink" title="✅ 类型 2：IO 密集型任务 (IO-bound)【生产 90% 的场景都是这个】"></a>✅ 类型 2：IO 密集型任务 (IO-bound)【生产 90% 的场景都是这个】</h3><ul>
+<li><strong>任务特征</strong>：任务执行过程中，有大量的<strong>等待时间</strong>，CPU 处于空闲状态，比如：数据库查询 &#x2F; 更新、Redis 缓存操作、HTTP 接口调用、文件读写、MQ 消息收发、网络请求。</li>
+<li><strong>核心原理</strong>：这类任务的<strong>CPU 利用率极低</strong>（通常不足 20%），比如执行一个数据库查询任务，耗时 100ms，其中 95ms 是等待数据库返回结果，CPU 只工作了 5ms。此时多创建线程，能让 CPU 在等待 IO 的空闲时间里，去执行其他线程的任务，<strong>最大化压榨 CPU 的利用率</strong>，线程数适当多一点，吞吐量会显著提升。</li>
+</ul>
+<h3 id="✅-补充：混合型任务"><a href="#✅-补充：混合型任务" class="headerlink" title="✅ 补充：混合型任务"></a>✅ 补充：混合型任务</h3><p>生产中也有混合任务（既有计算又有 IO），比如：查询数据库后对数据做排序处理。这类任务<strong>按 IO 密集型规则配置</strong>即可，后续微调就行。</p>
+<h2 id="二、第一步：获取基础值-本机-CPU-核心数（必查）"><a href="#二、第一步：获取基础值-本机-CPU-核心数（必查）" class="headerlink" title="二、第一步：获取基础值 - 本机 CPU 核心数（必查）"></a>二、第一步：获取基础值 - 本机 CPU 核心数（必查）</h2><p>不管是哪种任务类型，线程数的配置都基于 <strong>CPU 核心数</strong>，Java 中可以通过一行代码<strong>动态获取当前服务器的 CPU 核心数</strong>，代码在任何环境都能运行，无需手动配置：</p>
+<p>运行</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 获取当前JVM可用的CPU核心数（推荐，生产用这个）</span></span><br><span class="line"><span class="type">int</span> <span class="variable">coreNum</span> <span class="operator">=</span> Runtime.getRuntime().availableProcessors();</span><br><span class="line">System.out.println(<span class="string">&quot;CPU核心数：&quot;</span> + coreNum);</span><br></pre></td></tr></table></figure>
+
+<h3 id="关键说明"><a href="#关键说明" class="headerlink" title="关键说明"></a>关键说明</h3><ul>
+<li>比如：8 核服务器 → 返回<code>8</code>，16 核服务器 → 返回<code>16</code>；</li>
+<li>这个值是<strong>JVM 感知到的 CPU 核心数</strong>，不是物理核心数，云服务器的虚拟机也是精准的；</li>
+<li>所有公式的<strong>基准值都是这个数字</strong>，记为 <code>N = CPU核心数</code>。</li>
+</ul>
+<h2 id="三、业界公认最优公式（重中之重，直接套用，90-场景够用）"><a href="#三、业界公认最优公式（重中之重，直接套用，90-场景够用）" class="headerlink" title="三、业界公认最优公式（重中之重，直接套用，90% 场景够用）"></a>三、业界公认最优公式（重中之重，直接套用，90% 场景够用）</h2><p>这些公式是<strong>Java 并发编程领域的行业标准</strong>，由《Java 并发编程实战》《阿里巴巴 Java 开发手册》等权威资料总结，经过海量生产环境验证，<strong>无脑套用即可</strong>，是最优的「初始配置值」。</p>
+<h3 id="✅-公式-1：CPU-密集型任务-配置规则"><a href="#✅-公式-1：CPU-密集型任务-配置规则" class="headerlink" title="✅ 公式 1：CPU 密集型任务 配置规则"></a>✅ 公式 1：CPU 密集型任务 配置规则</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">核心线程数(corePoolSize) = N  （CPU核心数）</span><br><span class="line">最大线程数(maximumPoolSize) = N 或 N + 1</span><br></pre></td></tr></table></figure>
+
+<h4 id="为什么这么配？"><a href="#为什么这么配？" class="headerlink" title="为什么这么配？"></a>为什么这么配？</h4><p>CPU 密集型任务，CPU 已经被占满，线程数 &#x3D; CPU 核心数时，CPU 能跑满且<strong>无上下文切换</strong>，此时吞吐量是最大值；配置<code>N+1</code>是为了应对「某一线程偶尔发生页缺失或暂停」的极端情况，备用一个线程保证 CPU 不空闲，性能几乎无损耗。</p>
+<blockquote>
+<p>✅ 举例：8 核服务器 → core&#x3D;8，max&#x3D;8&#x2F;9；16 核服务器 → core&#x3D;16，max&#x3D;16&#x2F;17</p>
+</blockquote>
+<h3 id="✅-公式-2：IO-密集型任务-配置规则（2-个最优公式，任选其一）"><a href="#✅-公式-2：IO-密集型任务-配置规则（2-个最优公式，任选其一）" class="headerlink" title="✅ 公式 2：IO 密集型任务 配置规则（2 个最优公式，任选其一）"></a>✅ 公式 2：IO 密集型任务 配置规则（2 个最优公式，任选其一）</h3><p>IO 密集型是生产主流，有两个都非常好用的公式，<strong>效果几乎一致</strong>，根据自己的习惯选择即可，都是利用「CPU 空闲时间」最大化提升吞吐量：</p>
+<h4 id="✅-公式-A（阿里推荐，最常用，简单好记）"><a href="#✅-公式-A（阿里推荐，最常用，简单好记）" class="headerlink" title="✅ 公式 A（阿里推荐，最常用，简单好记）"></a>✅ 公式 A（阿里推荐，最常用，简单好记）</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">核心线程数(corePoolSize) = 2 * N  （CPU核心数 * 2）</span><br><span class="line">最大线程数(maximumPoolSize) = 2 * N 或 4 * N</span><br></pre></td></tr></table></figure>
+
+<h4 id="✅-公式-B（经典理论公式，精准度更高）"><a href="#✅-公式-B（经典理论公式，精准度更高）" class="headerlink" title="✅ 公式 B（经典理论公式，精准度更高）"></a>✅ 公式 B（经典理论公式，精准度更高）</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">核心线程数(corePoolSize) = N / (1 - 阻塞系数) </span><br><span class="line">最大线程数(maximumPoolSize) = 2 * corePoolSize</span><br></pre></td></tr></table></figure>
+
+<h5 id="阻塞系数说明"><a href="#阻塞系数说明" class="headerlink" title="阻塞系数说明"></a>阻塞系数说明</h5><p>阻塞系数 &#x3D; 任务中<strong>IO 等待的时间 &#x2F; 任务总执行时间</strong>，IO 密集型任务的阻塞系数一般在 <strong>0.8 ~ 0.9</strong> 之间：</p>
+<ul>
+<li>比如：任务总耗时 100ms，IO 等待 90ms → 阻塞系数 &#x3D; 0.9；</li>
+<li>代入公式：8 核服务器 → core &#x3D; 8&#x2F;(1-0.9) &#x3D; <strong>80</strong>；</li>
+<li>这也是为什么「IO 密集型任务线程数可以配很大」的原因，CPU 根本忙不过来。</li>
+</ul>
+<h4 id="为什么这么配？-1"><a href="#为什么这么配？-1" class="headerlink" title="为什么这么配？"></a>为什么这么配？</h4><p>IO 密集型任务 CPU 利用率低，多线程能充分利用 CPU 的空闲时间，线程数越多，CPU 的利用率越高，直到 CPU 利用率达到 80%~90%（最佳状态），再增加线程数就会出现上下文切换的损耗了。</p>
+<blockquote>
+<p>✅ 举例：8 核服务器 → core&#x3D;16，max&#x3D;16&#x2F;32；16 核服务器 → core&#x3D;32，max&#x3D;32&#x2F;64</p>
+</blockquote>
+<h2 id="四、核心线程数-最大线程数-核心关系-队列容量-联动配置"><a href="#四、核心线程数-最大线程数-核心关系-队列容量-联动配置" class="headerlink" title="四、核心线程数 &amp; 最大线程数 核心关系 + 队列容量 联动配置"></a>四、核心线程数 &amp; 最大线程数 核心关系 + 队列容量 联动配置</h2><p>这是<strong>90% 的人都会忽略的关键点</strong>：<code>corePoolSize</code>、<code>maximumPoolSize</code>、<code>队列容量(queueSize)</code> 三者是<strong>强联动</strong>的，不是孤立配置的，配置的顺序和大小关系直接决定线程池的执行效率，<strong>这是生产调优的核心</strong>，必须记牢！</p>
+<h3 id="✅-1-三者的大小关系（硬性规则，必须遵守）"><a href="#✅-1-三者的大小关系（硬性规则，必须遵守）" class="headerlink" title="✅ 1. 三者的大小关系（硬性规则，必须遵守）"></a>✅ 1. 三者的大小关系（硬性规则，必须遵守）</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">corePoolSize  &lt;  maximumPoolSize</span><br><span class="line">队列容量(queueSize)  &gt;=  corePoolSize</span><br></pre></td></tr></table></figure>
+
+<h4 id="为什么？"><a href="#为什么？" class="headerlink" title="为什么？"></a>为什么？</h4><ul>
+<li>规则 1：<code>core &lt; max</code> → 核心线程数必须小于最大线程数，否则<code>maximumPoolSize</code>完全失效，线程池无法扩容应对突发流量，和无界队列的效果一样；</li>
+<li>规则 2：<code>队列容量 &gt;= core</code> → 队列是「缓冲峰值任务」的作用，队列容量至少要能放下核心线程处理不过来的第一批任务，避免队列快速填满触发扩容，减少线程创建销毁的开销。</li>
+</ul>
+<h3 id="✅-2-三者的联动执行逻辑（回顾，加深理解）"><a href="#✅-2-三者的联动执行逻辑（回顾，加深理解）" class="headerlink" title="✅ 2. 三者的联动执行逻辑（回顾，加深理解）"></a>✅ 2. 三者的联动执行逻辑（回顾，加深理解）</h3><p>结合之前的知识点，再次梳理完整逻辑，你会明白「为什么这么配」：</p>
+<ol>
+<li>任务提交 → 核心线程执行，线程数增长至<code>corePoolSize</code>；</li>
+<li>核心线程满 → 任务进入<strong>有界队列</strong>排队，队列堆积至<code>queueSize</code>；</li>
+<li>队列满 → 线程池扩容，创建非核心线程，线程数增长至<code>maximumPoolSize</code>；</li>
+<li>线程数满 → 触发拒绝策略，保护系统资源。</li>
+</ol>
+<h3 id="✅-3-生产级「三位一体」推荐配置（IO-密集型，8-核服务器为例）"><a href="#✅-3-生产级「三位一体」推荐配置（IO-密集型，8-核服务器为例）" class="headerlink" title="✅ 3. 生产级「三位一体」推荐配置（IO 密集型，8 核服务器为例）"></a>✅ 3. 生产级「三位一体」推荐配置（IO 密集型，8 核服务器为例）</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CPU核心数 N = 8</span><br><span class="line">corePoolSize = 16 （2*N）</span><br><span class="line">maximumPoolSize = 32 （4*N）</span><br><span class="line">队列容量 queueSize = 50 （&gt;= core，推荐50~200）</span><br></pre></td></tr></table></figure>
+
+<p>这个配置是<strong>万金油配置</strong>，能应对绝大多数业务场景，兼顾「常态任务处理 + 突发流量缓冲 + 资源可控」，不会出现 OOM，也不会出现线程过多的问题。</p>
+<h2 id="五、进阶：核心线程数和最大线程数的「本质区别」（配置的底层逻辑）"><a href="#五、进阶：核心线程数和最大线程数的「本质区别」（配置的底层逻辑）" class="headerlink" title="五、进阶：核心线程数和最大线程数的「本质区别」（配置的底层逻辑）"></a>五、进阶：核心线程数和最大线程数的「本质区别」（配置的底层逻辑）</h2><p>你只有理解了两者的<strong>本质差异</strong>，才能根据业务场景灵活调整，而不是死记公式，这也是面试常问的考点，<strong>4 个核心区别，一目了然</strong>：</p>
+<h3 id="✅-1-生命周期不同（最核心区别）"><a href="#✅-1-生命周期不同（最核心区别）" class="headerlink" title="✅ 1. 生命周期不同（最核心区别）"></a>✅ 1. 生命周期不同（最核心区别）</h3><ul>
+<li><p><strong>核心线程 (corePoolSize)</strong>：<strong>常驻线程，不会被销毁</strong>。线程池启动后，核心线程创建后，即使空闲很久，也会一直存活在池中，除非手动设置了 <code>allowCoreThreadTimeOut(true)</code>（默认 false）。</p>
+<p>→ 作用：处理常态、稳定的任务量，避免频繁创建销毁线程的开销。</p>
+</li>
+<li><p><strong>最大线程数 (maximumPoolSize)</strong>：是线程池的<strong>扩容上限</strong>，<code>max - core</code> 这部分是<strong>非核心线程</strong>，这类线程是「临时工」：空闲时间超过 <code>keepAliveTime</code> 就会被销毁，线程池的线程数最终会回落至<code>corePoolSize</code>。</p>
+<p>→ 作用：处理突发、峰值的任务量，应对流量洪峰，洪峰过后自动释放资源，不浪费内存。</p>
+</li>
+</ul>
+<h3 id="✅-2-创建时机不同"><a href="#✅-2-创建时机不同" class="headerlink" title="✅ 2. 创建时机不同"></a>✅ 2. 创建时机不同</h3><ul>
+<li>核心线程：任务提交后，线程数不足<code>core</code>时<strong>立即创建</strong>；</li>
+<li>非核心线程：只有「核心线程满 + 队列已满」时，才会<strong>被动创建</strong>。</li>
+</ul>
+<h3 id="✅-3-资源占用不同"><a href="#✅-3-资源占用不同" class="headerlink" title="✅ 3. 资源占用不同"></a>✅ 3. 资源占用不同</h3><ul>
+<li>核心线程常驻，会一直占用少量内存资源，但换来的是<strong>无创建销毁开销</strong>；</li>
+<li>非核心线程按需创建，空闲后销毁，<strong>内存占用可控</strong>，但有少量的线程创建销毁开销（可忽略）。</li>
+</ul>
+<h3 id="✅-4-配置策略不同"><a href="#✅-4-配置策略不同" class="headerlink" title="✅ 4. 配置策略不同"></a>✅ 4. 配置策略不同</h3><ul>
+<li>核心线程：配置的是「<strong>保底线程数</strong>」，根据<strong>常态 QPS</strong>配置；</li>
+<li>最大线程数：配置的是「<strong>兜底线程数</strong>」，根据<strong>峰值 QPS</strong>配置。</li>
+</ul>
+<h2 id="六、生产环境调优实战（公式之外的最优方案，必看）"><a href="#六、生产环境调优实战（公式之外的最优方案，必看）" class="headerlink" title="六、生产环境调优实战（公式之外的最优方案，必看）"></a>六、生产环境调优实战（公式之外的最优方案，必看）</h2><p>所有公式都只是「初始值」，<strong>没有最好的配置，只有最适合业务的配置</strong>，生产环境的最终配置，一定是「公式配置 + 压测调优」出来的，这部分是<strong>干货中的干货</strong>，3 个步骤，简单易行，能让你的线程池性能提升 50% 以上！</p>
+<h3 id="✅-调优核心原则"><a href="#✅-调优核心原则" class="headerlink" title="✅ 调优核心原则"></a>✅ 调优核心原则</h3><p>线程池的<strong>最优状态</strong>：让服务器的 <strong>CPU 利用率稳定在 70% ~ 80%</strong>，内存使用率可控，任务无堆积，无拒绝，响应时间平稳。</p>
+<blockquote>
+<p>核心逻辑：CPU 利用率太低 → 线程数太少，CPU 没跑满，吞吐量低；CPU 利用率太高 → 线程数太多，上下文切换频繁，响应时间变长。</p>
+</blockquote>
+<h3 id="✅-调优三步法（无脑执行）"><a href="#✅-调优三步法（无脑执行）" class="headerlink" title="✅ 调优三步法（无脑执行）"></a>✅ 调优三步法（无脑执行）</h3><h4 id="第一步：压测基准配置"><a href="#第一步：压测基准配置" class="headerlink" title="第一步：压测基准配置"></a>第一步：压测基准配置</h4><p>用公式配置好初始值（core、max、队列容量），用压测工具（JMeter&#x2F;JMeter&#x2F; 自研压测）模拟业务的「常态 QPS」和「峰值 QPS」，压测 3~5 分钟，记录三个核心指标：</p>
+<ol>
+<li>CPU 利用率；</li>
+<li>线程池的队列堆积数（<code>threadPool.getQueue().size()</code>）；</li>
+<li>任务的平均响应时间。</li>
+</ol>
+<h4 id="第二步：根据指标调优（核心）"><a href="#第二步：根据指标调优（核心）" class="headerlink" title="第二步：根据指标调优（核心）"></a>第二步：根据指标调优（核心）</h4><h5 id="✔-情况-1：CPU-利用率-50-队列有堆积-响应时间长"><a href="#✔-情况-1：CPU-利用率-50-队列有堆积-响应时间长" class="headerlink" title="✔ 情况 1：CPU 利用率 &lt; 50% + 队列有堆积 + 响应时间长"></a>✔ 情况 1：CPU 利用率 &lt; 50% + 队列有堆积 + 响应时间长</h5><p>→ 问题：线程数太少，CPU 没跑满，任务堆积在队列里。</p>
+<p>→ 解决方案：<strong>增大 core 和 max</strong>，比如 core 从 16→24，max 从 32→48，逐步增加，直到 CPU 利用率到 70% 左右。</p>
+<h5 id="✔-情况-2：CPU-利用率-90-响应时间飙升-无队列堆积"><a href="#✔-情况-2：CPU-利用率-90-响应时间飙升-无队列堆积" class="headerlink" title="✔ 情况 2：CPU 利用率 &gt; 90% + 响应时间飙升 + 无队列堆积"></a>✔ 情况 2：CPU 利用率 &gt; 90% + 响应时间飙升 + 无队列堆积</h5><p>→ 问题：线程数太多，CPU 上下文切换频繁，性能损耗严重。</p>
+<p>→ 解决方案：<strong>减小 max</strong>，比如 max 从 32→24，core 不变，直到 CPU 利用率回落至 80%，响应时间恢复平稳。</p>
+<h5 id="✔-情况-3：队列堆积严重，但-CPU-利用率低"><a href="#✔-情况-3：队列堆积严重，但-CPU-利用率低" class="headerlink" title="✔ 情况 3：队列堆积严重，但 CPU 利用率低"></a>✔ 情况 3：队列堆积严重，但 CPU 利用率低</h5><p>→ 问题：队列容量太大，任务都堆积在队列里，线程池没触发扩容。</p>
+<p>→ 解决方案：<strong>减小队列容量</strong>（比如 50→30），让线程池更早触发扩容，用更多线程处理任务，减少堆积。</p>
+<h5 id="✔-情况-4：有任务被拒绝，但-CPU-利用率低"><a href="#✔-情况-4：有任务被拒绝，但-CPU-利用率低" class="headerlink" title="✔ 情况 4：有任务被拒绝，但 CPU 利用率低"></a>✔ 情况 4：有任务被拒绝，但 CPU 利用率低</h5><p>→ 问题：max 太小，线程池扩容不够，无法处理峰值任务。</p>
+<p>→ 解决方案：<strong>增大 max</strong>，比如 32→48，同时可以调整拒绝策略为<code>CallerRunsPolicy</code>（核心任务不丢失）。</p>
+<h4 id="第三步：线上观测微调"><a href="#第三步：线上观测微调" class="headerlink" title="第三步：线上观测微调"></a>第三步：线上观测微调</h4><p>压测环境和生产环境有差异，上线后通过监控工具（SkyWalking&#x2F;Prometheus&#x2F;arthas）观测线程池的实时指标：线程数、队列数、任务响应时间，根据实际流量再微调 1~2 次，即可得到最优配置。</p>
+<h2 id="七、避坑指南：配置线程数的-5-个高频错误（生产禁止）"><a href="#七、避坑指南：配置线程数的-5-个高频错误（生产禁止）" class="headerlink" title="七、避坑指南：配置线程数的 5 个高频错误（生产禁止）"></a>七、避坑指南：配置线程数的 5 个高频错误（生产禁止）</h2><p>这些错误是新手最容易犯的，也是生产中出现「线程池性能差、OOM、任务丢失」的主要原因，<strong>看完直接避开 99% 的坑</strong>：</p>
+<h3 id="❌-错误-1：配置-core-max"><a href="#❌-错误-1：配置-core-max" class="headerlink" title="❌ 错误 1：配置 core &#x3D; max"></a>❌ 错误 1：配置 core &#x3D; max</h3><p>→ 后果：线程池永远不会销毁线程，所有线程都是核心线程，常驻内存，相当于「固定线程池」，无法应对流量低谷，浪费内存资源；</p>
+<p>→ 禁止原因：<code>maximumPoolSize</code> 完全失效，失去了线程池的扩容 &#x2F; 缩容能力。</p>
+<h3 id="❌-错误-2：max-配置的过大（比如-8-核配-max-200）"><a href="#❌-错误-2：max-配置的过大（比如-8-核配-max-200）" class="headerlink" title="❌ 错误 2：max 配置的过大（比如 8 核配 max&#x3D;200）"></a>❌ 错误 2：max 配置的过大（比如 8 核配 max&#x3D;200）</h3><p>→ 后果：CPU 上下文切换极其频繁，CPU 利用率飙升至 100%，任务响应时间急剧变长，甚至程序卡死；</p>
+<p>→ 禁止原因：线程数不是越多越好，超过 CPU 的处理能力，线程越多性能越差。</p>
+<h3 id="❌-错误-3：core-配置的过小（比如-8-核配-core-2）"><a href="#❌-错误-3：core-配置的过小（比如-8-核配-core-2）" class="headerlink" title="❌ 错误 3：core 配置的过小（比如 8 核配 core&#x3D;2）"></a>❌ 错误 3：core 配置的过小（比如 8 核配 core&#x3D;2）</h3><p>→ 后果：常态任务就会进入队列排队，队列堆积严重，任务响应时间变长，CPU 利用率低，吞吐量上不去；</p>
+<p>→ 禁止原因：核心线程是保底的，太小会导致 CPU 资源浪费。</p>
+<h3 id="❌-错误-4：无界队列搭配大-max"><a href="#❌-错误-4：无界队列搭配大-max" class="headerlink" title="❌ 错误 4：无界队列搭配大 max"></a>❌ 错误 4：无界队列搭配大 max</h3><p>→ 后果：无界队列永远不会满，max 完全失效，配置了也没用，还会有 OOM 风险；</p>
+<p>→ 禁止原因：无界队列的场景，只需要配置 core 即可。</p>
+<h3 id="❌-错误-5：不看任务类型，无脑配置"><a href="#❌-错误-5：不看任务类型，无脑配置" class="headerlink" title="❌ 错误 5：不看任务类型，无脑配置"></a>❌ 错误 5：不看任务类型，无脑配置</h3><p>→ 后果：CPU 密集型配了大线程数，IO 密集型配了小线程数，性能差到极致；</p>
+<p>→ 禁止原因：任务类型是配置的唯一核心依据，脱离任务类型的配置都是无效的。</p>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><h3 id="✅-核心线程数-最大线程数-配置总纲（一句话记住）"><a href="#✅-核心线程数-最大线程数-配置总纲（一句话记住）" class="headerlink" title="✅ 核心线程数 &#x2F; 最大线程数 配置总纲（一句话记住）"></a>✅ 核心线程数 &#x2F; 最大线程数 配置总纲（一句话记住）</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">先分任务类型，再拿CPU核心数，套公式定初始值，压测调优出最优值</span><br></pre></td></tr></table></figure>
+
+<h3 id="✅-核心公式回顾"><a href="#✅-核心公式回顾" class="headerlink" title="✅ 核心公式回顾"></a>✅ 核心公式回顾</h3><ol>
+<li>CPU 密集型：<code>core = N，max = N/N+1</code></li>
+<li>IO 密集型（主流）：<code>core = 2*N，max = 2*N/4*N</code></li>
+<li>队列容量：<code>&gt;= core</code>，推荐 50~200</li>
+</ol>
+<h3 id="✅-核心关系回顾"><a href="#✅-核心关系回顾" class="headerlink" title="✅ 核心关系回顾"></a>✅ 核心关系回顾</h3><ol>
+<li><code>core &lt; max</code> 必须遵守，否则 max 失效；</li>
+<li>核心线程是「常驻工」，非核心线程是「临时工」；</li>
+<li>线程池最优状态：CPU 利用率 70%~80%。</li>
+</ol>
+<h3 id="✅-生产最佳实践"><a href="#✅-生产最佳实践" class="headerlink" title="✅ 生产最佳实践"></a>✅ 生产最佳实践</h3><ol>
+<li>90% 的业务场景都是 IO 密集型，直接套用 <code>core=2N，max=4N</code>；</li>
+<li>核心业务用「有界队列 + CallerRunsPolicy 拒绝策略」，保证任务不丢失；</li>
+<li>上线后一定要监控线程池指标，根据实际流量微调配置。</li>
+</ol>
+<p>至此，线程池的核心参数配置就全部讲透了，从理论到公式，从配置到调优，从避坑到实战，你可以直接应用到生产中。</p>
+]]></content>
+      <categories>
+        <category>JAVA线程池</category>
+      </categories>
+      <tags>
+        <tag>JAVA</tag>
+      </tags>
+  </entry>
 </search>
