@@ -510,10 +510,10 @@
 <p>至此，线程池的核心参数配置就全部讲透了，从理论到公式，从配置到调优，从避坑到实战，你可以直接应用到生产中。</p>
 ]]></content>
       <categories>
-        <category>JAVA线程池</category>
+        <category>后端</category>
       </categories>
       <tags>
-        <tag>JAVA</tag>
+        <tag>JAVA线程池</tag>
       </tags>
   </entry>
 </search>
