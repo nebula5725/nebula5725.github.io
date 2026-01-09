@@ -374,7 +374,7 @@
       </tags>
   </entry>
   <entry>
-    <title>JAVA线程池参数配置（生产级 + 公式 + 实操）</title>
+    <title>JAVA线程池参数配置</title>
     <url>/2026/01/09/how-to-confirm-java-threadpool-params/</url>
     <content><![CDATA[<p><strong>没有固定的万能值，但有「业界公认的最优计算公式 + 分场景规则 + 调优方法」</strong>，所有规则都是生产环境验证过的，看完你能直接套用，彻底解决线程数配置难题。</p>
 <blockquote>
